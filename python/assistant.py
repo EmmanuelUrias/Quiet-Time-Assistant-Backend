@@ -67,9 +67,9 @@ async def send_message():
 async def handle_message(message):
     assistant_response = await get_assistant_response(message)
     # Here you can handle the response, for example, log it or send it to another service
-    if assistant_response == True:
-        return assistant_response
-    return False
+    if assistant_response == None:
+        return False
+    return assistant_response
 
 if __name__ == '__main__':
     app.run(debug=True)
