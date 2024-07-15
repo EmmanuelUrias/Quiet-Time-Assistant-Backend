@@ -37,7 +37,7 @@ async def get_assistant_response(message):
     run = openai.beta.threads.runs.create_and_poll(
         thread_id=thread.id,
         assistant_id=assistant_id,
-        instructions="Refer to the user as a fellow disciple and be friendly in your response",
+        instructions="Refer to the user as a fellow disciple and be friendly in your response. Also seperate your points using bullet points and '###' for the title of the points. Answer in a biblical context and always try to supply scriptures",
     )
 
     if run.status == "completed":
