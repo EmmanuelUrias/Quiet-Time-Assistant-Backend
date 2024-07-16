@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import os
 from flask_cors import CORS
 
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -21,54 +20,55 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 assistant_id = os.getenv('ASSISTANT_ID')
 
 # Function to handle OpenAI assistant response
-async def get_assistant_response(message):
+def get_assistant_response(message):
+    try:
+        # Create a thread
+        thread = openai.beta.threads.create()
 
-    # Create a thread
-    thread = openai.beta.threads.create()
+        # Send a message to the thread
+        openai.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=message,
+        )
 
-    # Send a message to the thread
-    message = openai.beta.threads.messages.create(
-        thread_id=thread.id,
-        role="user",
-        content=message,
-    )
+        # Run the assistant with specific instructions
+        run = openai.beta.threads.runs.create_and_poll(
+            thread_id=thread.id,
+            assistant_id=assistant_id,
+            instructions="Refer to the user as a fellow disciple and be friendly in your response. Also separate your points using bullet points and '###' for the title of the points, don't try the '**' characters. Answer in a biblical context and always try to supply scriptures",
+        )
 
-    # Run the assistant with specific instructions
-    run = openai.beta.threads.runs.create_and_poll(
-        thread_id=thread.id,
-        assistant_id=assistant_id,
-        instructions="Refer to the user as a fellow disciple and be friendly in your response. Also seperate your points using bullet points and '###' for the title of the points. Answer in a biblical context and always try to supply scriptures",
-    )
-
-    if run.status == "completed":
-        messages = openai.beta.threads.messages.list(thread_id=thread.id)
-
-        for message in messages:
-            if message.content[0].type == "text":
-                assistant_response = message.content[0].text.value
-                return assistant_response
-    return None
+        if run.status == "completed":
+            messages = openai.beta.threads.messages.list(thread_id=thread.id)
+            for message in messages:
+                if message.content[0].type == "text":
+                    assistant_response = message.content[0].text.value
+                    return assistant_response
+        return None
+    except Exception as e:
+        print(f"Error in get_assistant_response: {e}")
+        return None
 
 # Route for sending messages
 @app.route('/send_message', methods=['POST'])
-async def send_message():
+def send_message():
     data = request.get_json()
     user_message = data.get('message')
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
 
-    # Handle the message asynchronously
-    assistant_response = await handle_message(user_message)
-    if assistant_response == False:
+    # Handle the message synchronously
+    assistant_response = handle_message(user_message)
+    if assistant_response is None:
         return jsonify({"status": "Message failed", "response": "Oops there was an error please try again or wait for another time"}), 500
     return jsonify({"status": "Message received and processed", "response": assistant_response}), 200
 
 # Function to handle the message
-async def handle_message(message):
-    assistant_response = await get_assistant_response(message)
-    # Here you can handle the response, for example, log it or send it to another service
-    if assistant_response == None:
-        return False
+def handle_message(message):
+    assistant_response = get_assistant_response(message)
+    if assistant_response is None:
+        return None
     return assistant_response
 
 if __name__ == '__main__':
