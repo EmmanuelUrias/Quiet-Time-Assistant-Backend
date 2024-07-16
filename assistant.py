@@ -3,6 +3,7 @@ import openai
 from dotenv import load_dotenv
 import os
 from flask_cors import CORS
+import awsgi
 
 # Load environment variables from .env file
 load_dotenv()
@@ -70,6 +71,9 @@ def handle_message(message):
     if assistant_response is None:
         return None
     return assistant_response
+
+def lambda_handler(event, context):
+    return awsgi.response(app, event, context, base64_content_types={"image/png"})
 
 if __name__ == '__main__':
     app.run(debug=True)
