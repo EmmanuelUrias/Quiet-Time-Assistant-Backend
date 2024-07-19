@@ -10,8 +10,8 @@
             "concurrent"
         ],
         "profile_name": "default",
-        "project_name": "quiet-time-assistant",
+        "project_name": "quiet-time-assi",
         "runtime": "python3.12",
-        "s3_bucket": "quiet-time-assistant-443"
+        "s3_bucket": "quiet-time-assistant-bucket"
     }
 }
